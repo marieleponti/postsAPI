@@ -4,6 +4,7 @@ import com.hatchways.api.exceptions.EtAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -18,6 +19,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     private static final String SQL_CREATE = "INSERT INTO ET_USERS(USER_ID, USER_NAME, EMAIL, PASSWORD) " +
             "VALUES(NEXTVAL('ET_USERS_SEQ'), ?, ?, ?)";
+    //query to select count from et_users for given email
+    private static final String SQL_COUNT_BY_EMAIL = "";
+    //query to select all columns of user for given user id
+    private static final String SQL_FIND_BY_ID = "SELECT USER_ID, USER_NAME, EMAIL, PASSWORD" +
+            "FROM ET_USERS WHERE USER_ID = ?";
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -48,11 +54,18 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Integer getCountByEmail(String email) {
-        return null;
+        return jdbcTemplate.queryForObject(SQL_COUNT_BY_EMAIL, new Object[]{email}, Integer.class);
     }
 
     @Override
     public User findById(Integer userId) {
-        return null;
+        return jdbcTemplate.queryForObject(SQL_FIND_BY_ID, new Object[]{userId}, userRowMapper);
     }
+
+    private RowMapper<User> userRowMapper = ((rs, rowNum) -> {
+       return new User(rs.getInt("USER_ID"),
+        rs.getString("USER_NAME"),
+        rs.getString("EMAIL"),
+        rs.getString("PASSWORD"));
+    });
 }
